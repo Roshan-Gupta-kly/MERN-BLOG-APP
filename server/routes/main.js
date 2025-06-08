@@ -12,13 +12,29 @@ const locals = {
 // Get method
 router.get("", async (req, res) => {
   try {
-    const data = await Post.find();
-    res.render("index", { locals, data }); // it render the index.ejs file as home page
+    let perPage = 2;
+    let page = req.query.page || 1;
+
+    const data = await Post.aggregate([{ $sort: { createdAt: -1 } }])
+      .skip(perPage * page - perPage)
+      .limit(perPage)
+      .exec();
+
+    const count = await Post.countDocuments();
+    const nextPage = parseInt(page) + 1;
+    const hasNextPage = nextPage <= Math.ceil(count / perPage);
+
+    // const data = await Post.find();
+    res.render("index", {
+      locals,
+      data,
+      current: page,
+      nextPage: hasNextPage ? nextPage : null,
+    }); // it render the index.ejs file as home page
   } catch (error) {
     console.log(error);
   }
 });
-
 
 router.get("/about", (req, res) => {
   res.render("about", { locals });
@@ -28,8 +44,6 @@ router.get("/contact", (req, res) => {
 });
 
 module.exports = router;
-
-
 
 // function insertPostData() {
 //   Post.insertMany([

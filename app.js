@@ -1,3 +1,5 @@
+// this app create the server. it also named as server.js
+
 require("dotenv").config();
 
 const express = require("express");
